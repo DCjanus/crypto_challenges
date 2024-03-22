@@ -2,6 +2,8 @@ use bytes::{Bytes, BytesMut};
 use bytes::BufMut;
 use itertools::Itertools;
 
+use crate::utils::hex_decode_iter;
+
 /// https://cryptopals.com/sets/1/challenges/1
 /// Convert hex to base64
 /// The string:
@@ -43,10 +45,7 @@ fn test() {
 fn solution(input: Bytes) -> Bytes {
     assert_eq!(input.len() % 2, 0, "input length must be even");
     let byte_len = input.len() / 2;
-    let byte_iter = input
-        .into_iter()
-        .tuples()
-        .map(|(a, b)| hex_to_digit(a) * 16 + hex_to_digit(b));
+    let byte_iter = hex_decode_iter(input.into_iter());
     let base64_len = (byte_len * 4 + 2) / 3;
 
     let mut output = BytesMut::with_capacity(base64_len);
@@ -84,14 +83,5 @@ fn digit_to_base64_part(out: &mut BytesMut, input: &[u8]) {
             out.put_u8(b'=');
         }
         _ => panic!("invalid input: {:?}", input),
-    }
-}
-
-fn hex_to_digit(hex: u8) -> u8 {
-    match hex {
-        b'0'..=b'9' => hex - b'0',
-        b'a'..=b'f' => hex - b'a' + 10,
-        b'A'..=b'F' => hex - b'A' + 10,
-        _ => panic!("invalid hex digit: {}", hex),
     }
 }
