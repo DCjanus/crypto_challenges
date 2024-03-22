@@ -1,5 +1,4 @@
-use bytes::BufMut;
-use bytes::{Bytes, BytesMut};
+use bytes::{BufMut, Bytes, BytesMut};
 use itertools::Itertools;
 
 use crate::utils::hex_decode_iter;

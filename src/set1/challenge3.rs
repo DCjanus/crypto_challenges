@@ -2,7 +2,7 @@ use std::iter::repeat;
 
 use bytes::{Bytes, BytesMut};
 
-use crate::utils::{hex_decode_iter, xor_iter};
+use crate::utils::{char_freq_score, hex_decode_iter, xor_iter};
 
 /// https://cryptopals.com/sets/1/challenges/3
 /// Single-byte XOR cipher
@@ -35,25 +35,21 @@ fn solution(input: Bytes) -> Bytes {
     assert_eq!(input.len() % 2, 0, "input length must be even");
     let mut output = BytesMut::with_capacity(input.len() / 2);
 
-    let mut max_score = -1i64;
+    let mut max_score = -1f64;
     let mut max_key = 0;
 
+    let hex_decoded = BytesMut::from_iter(hex_decode_iter(input.into_iter())).freeze();
+
     for key in 0..=255 {
-        let a_iter = hex_decode_iter(input.clone().into_iter());
-        let b_iter = repeat(key);
-        let x_iter = xor_iter(a_iter, b_iter);
-        let score = score(x_iter);
+        let x_iter = xor_iter(hex_decoded.clone().into_iter(), repeat(key));
+        let score = char_freq_score(x_iter);
         if score > max_score {
             max_score = score;
             max_key = key;
         }
     }
 
-    let o_iter = xor_iter(hex_decode_iter(input.into_iter()), repeat(max_key));
+    let o_iter = xor_iter(hex_decoded.into_iter(), repeat(max_key));
     output.extend(o_iter);
     output.freeze()
-}
-
-fn score(input: impl Iterator<Item = u8>) -> i64 {
-    input.filter(|byte| byte.is_ascii_alphabetic()).count() as i64
 }
