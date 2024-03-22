@@ -1,6 +1,6 @@
 use bytes::{BufMut, Bytes, BytesMut};
 
-use crate::utils::{encode_hex_byte, hex_decode_iter};
+use crate::utils::{hex_decode_iter, hex_encode_iter, xor_iter};
 
 /// https://cryptopals.com/sets/1/challenges/2
 /// Fixed XOR
@@ -42,12 +42,9 @@ fn solution(a: Bytes, b: Bytes) -> Bytes {
     let mut output = BytesMut::with_capacity(a.len());
     let a_iter = hex_decode_iter(a.into_iter());
     let b_iter = hex_decode_iter(b.into_iter());
-    let o_iter = a_iter.zip(b_iter).map(|(a, b)| a ^ b);
-
-    for o in o_iter {
-        output.put_u8(encode_hex_byte(o / 16));
-        output.put_u8(encode_hex_byte(o % 16));
-    }
+    let x_iter = xor_iter(a_iter, b_iter);
+    let o_iter = hex_encode_iter(x_iter);
+    o_iter.for_each(|b| output.put_u8(b));
 
     output.freeze()
 }
